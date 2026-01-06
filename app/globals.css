@@ -1,0 +1,29 @@
+/* globals.css */
+
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  width: 100%;
+  background-color: #121212;
+  color: #fff; /* ✅ Force le texte global en blanc */
+  font-family: Arial, sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+h1, h2, h3, h4, h5, h6, p, span, a, div {
+  color: inherit; /* ✅ Empêche le noir par défaut du navigateur */
+}
+
+a {
+  text-decoration: none;
+  color: #b3b3b3;
+  transition: color 0.3s;
+}
+
+a:hover {
+  color: #fff;
+}
