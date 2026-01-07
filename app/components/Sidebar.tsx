@@ -1,21 +1,32 @@
+// app/components/Sidebar.tsx
 "use client";
 
 import { useState } from "react";
 import {
   FaHome,
   FaSearch,
-  FaHeart,
   FaPlus,
   FaListUl,
   FaBars,
   FaChevronLeft,
 } from "react-icons/fa";
+import { Playlist } from "./playlist/types";
+
+interface SidebarProps {
+  onToggle?: (isOpen: boolean) => void;
+  playlists: Playlist[];
+  onPlaylistSelect: (playlistId: string | null) => void;
+  currentView: string | null;
+  onAddPlaylist?: () => void;
+}
 
 export default function Sidebar({
   onToggle,
-}: {
-  onToggle?: (isOpen: boolean) => void;
-}) {
+  playlists,
+  onPlaylistSelect,
+  currentView,
+  onAddPlaylist,
+}: SidebarProps) {
   const [isOpen, setIsOpen] = useState(true);
 
   const toggleSidebar = () => {
@@ -41,11 +52,11 @@ export default function Sidebar({
         justifyContent: "space-between",
         color: "#b3b3b3",
         boxShadow: "4px 0 20px rgba(0, 0, 0, 0.4)",
-        transition: "width 0.4s ease, backdrop-filter 0.4s ease",
+        transition: "width 0.4s ease",
         zIndex: 99,
+        overflowY: "auto",
       }}
     >
-      {/* 🔝 Header + Toggle */}
       <div>
         <div
           style={{
@@ -61,8 +72,6 @@ export default function Sidebar({
                 color: "#1DB954",
                 fontSize: "22px",
                 fontWeight: "bold",
-                transition: "opacity 0.3s ease",
-                opacity: isOpen ? 1 : 0,
               }}
             >
               MyTunes
@@ -78,20 +87,12 @@ export default function Sidebar({
               cursor: "pointer",
               padding: "8px",
               borderRadius: "8px",
-              transition: "background 0.3s ease",
             }}
-            onMouseEnter={(e) =>
-              (e.currentTarget.style.background = "rgba(255,255,255,0.15)")
-            }
-            onMouseLeave={(e) =>
-              (e.currentTarget.style.background = "rgba(255,255,255,0.05)")
-            }
           >
             {isOpen ? <FaChevronLeft /> : <FaBars />}
           </button>
         </div>
 
-        {/* 🔍 Barre de recherche */}
         {isOpen && (
           <div
             style={{
@@ -101,7 +102,6 @@ export default function Sidebar({
               borderRadius: "20px",
               padding: "6px 12px",
               marginBottom: "25px",
-              transition: "opacity 0.3s ease",
             }}
           >
             <FaSearch style={{ color: "#b3b3b3", marginRight: "8px" }} />
@@ -120,23 +120,146 @@ export default function Sidebar({
           </div>
         )}
 
-        {/* 🧭 Navigation principale */}
         <nav
           style={{
             display: "flex",
             flexDirection: "column",
             gap: "12px",
-            alignItems: isOpen ? "flex-start" : "center",
           }}
         >
-          <NavItem icon={<FaHome />} label="Accueil" open={isOpen} active />
-          <NavItem icon={<FaListUl />} label="Bibliothèque" open={isOpen} />
-          <NavItem icon={<FaPlus />} label="Créer" open={isOpen} />
-          <NavItem icon={<FaHeart />} label="Favoris" open={isOpen} />
+          <NavItem
+            icon={<FaHome />}
+            label="Accueil"
+            open={isOpen}
+            active={currentView === null}
+            onClick={() => onPlaylistSelect(null)}
+          />
+          <NavItem
+            icon={<FaListUl />}
+            label="Toutes les vidéos"
+            open={isOpen}
+            active={currentView === "all"}
+            onClick={() => onPlaylistSelect("all")}
+          />
         </nav>
+
+        {isOpen && (
+          <div style={{ marginTop: "30px" }}>
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                marginBottom: "12px",
+                paddingLeft: "10px",
+                paddingRight: "10px",
+              }}
+            >
+              <h3
+                style={{
+                  color: "#b3b3b3",
+                  fontSize: "14px",
+                  margin: 0,
+                }}
+              >
+                MES PLAYLISTS
+              </h3>
+              <button
+                onClick={onAddPlaylist}
+                style={{
+                  background: "transparent",
+                  border: "none",
+                  color: "#b3b3b3",
+                  fontSize: "16px",
+                  cursor: "pointer",
+                  padding: "4px 8px",
+                  borderRadius: "4px",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  transition: "color 0.3s, background 0.3s",
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.color = "#1DB954";
+                  e.currentTarget.style.background = "#1DB95422";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.color = "#b3b3b3";
+                  e.currentTarget.style.background = "transparent";
+                }}
+                title="Ajouter une playlist"
+              >
+                <FaPlus />
+              </button>
+            </div>
+            {playlists.length > 0 && (
+              <div
+                style={{
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: "8px",
+                }}
+              >
+                {playlists.map((pl) => (
+                  <div
+                    key={pl.id}
+                    onClick={() => onPlaylistSelect(pl.id)}
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "12px",
+                      padding: "8px 10px",
+                      borderRadius: "6px",
+                      cursor: "pointer",
+                      background:
+                        currentView === pl.id ? "#1DB95422" : "transparent",
+                      color: currentView === pl.id ? "#fff" : "#b3b3b3",
+                      transition: "background 0.3s, color 0.3s",
+                    }}
+                    onMouseEnter={(e) => {
+                      if (currentView !== pl.id) {
+                        e.currentTarget.style.background = "#282828";
+                        e.currentTarget.style.color = "#fff";
+                      }
+                    }}
+                    onMouseLeave={(e) => {
+                      if (currentView !== pl.id) {
+                        e.currentTarget.style.background = "transparent";
+                        e.currentTarget.style.color = "#b3b3b3";
+                      }
+                    }}
+                  >
+                    <img
+                      src={pl.thumbnail}
+                      alt={pl.name}
+                      style={{
+                        width: "40px",
+                        height: "40px",
+                        borderRadius: "4px",
+                        objectFit: "cover",
+                      }}
+                      onError={(e) => {
+                        // Image de fallback si l'URL n'est pas valide
+                        e.currentTarget.src =
+                          "https://i.imgur.com/zYIlgBl.jpg";
+                      }}
+                    />
+                    <div style={{ flex: 1 }}>
+                      <div style={{ fontSize: "14px", fontWeight: "500" }}>
+                        {pl.name}
+                      </div>
+                      <div style={{ fontSize: "12px", opacity: 0.7 }}>
+                        {pl.videoCount} vidéos
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
-      {/* 🦶 Footer */}
       {isOpen && (
         <div
           style={{
@@ -155,20 +278,22 @@ export default function Sidebar({
   );
 }
 
-/* 🔘 Élément de navigation */
 function NavItem({
   icon,
   label,
   active = false,
   open = true,
+  onClick,
 }: {
   icon: React.ReactNode;
   label: string;
   active?: boolean;
   open?: boolean;
+  onClick?: () => void;
 }) {
   return (
     <div
+      onClick={onClick}
       style={{
         display: "flex",
         alignItems: "center",
@@ -180,16 +305,16 @@ function NavItem({
         padding: "8px 10px",
         borderRadius: "6px",
         cursor: "pointer",
-        width: "100%",
-        transition: "background 0.3s, color 0.3s, gap 0.3s ease",
+        background: active ? "#1DB95422" : "transparent",
+        transition: "background 0.3s, color 0.3s",
       }}
       onMouseEnter={(e) => {
-        (e.currentTarget.style.background = "#1DB95422");
-        (e.currentTarget.style.color = "#fff");
+        e.currentTarget.style.background = "#1DB95422";
+        e.currentTarget.style.color = "#fff";
       }}
       onMouseLeave={(e) => {
-        (e.currentTarget.style.background = "transparent");
-        (e.currentTarget.style.color = active ? "#fff" : "#b3b3b3");
+        e.currentTarget.style.background = active ? "#1DB95422" : "transparent";
+        e.currentTarget.style.color = active ? "#fff" : "#b3b3b3";
       }}
     >
       <span style={{ fontSize: "16px" }}>{icon}</span>

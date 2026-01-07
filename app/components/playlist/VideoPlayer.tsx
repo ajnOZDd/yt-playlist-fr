@@ -1,19 +1,62 @@
+// app/components/playlist/VideoPlayer.tsx
 "use client";
+
+import { useEffect, useRef } from "react";
 import { VideoData } from "./types";
 
 interface VideoPlayerProps {
   video: VideoData;
   onClose: () => void;
-  videoRef: React.RefObject<HTMLVideoElement | null>;
-  isAnimating: boolean;
 }
 
-export default function VideoPlayer({
-  video,
-  onClose,
-  videoRef,
-  isAnimating,
-}: VideoPlayerProps) {
+export default function VideoPlayer({ video, onClose }: VideoPlayerProps) {
+  const playerRef = useRef<HTMLDivElement>(null);
+  const artPlayerInstance = useRef<any>(null);
+
+  useEffect(() => {
+    if (!playerRef.current) return;
+
+    const initPlayer = () => {
+      const container = playerRef.current;
+      if (!container) return;
+
+      // Nettoyer le contenu précédent
+      container.innerHTML = "";
+
+      if (video.type === "youtube" && video.youtubeId) {
+        // Pour YouTube, utiliser iframe
+        const iframe = document.createElement("iframe");
+        iframe.src = `https://www.youtube.com/embed/${video.youtubeId}?autoplay=1`;
+        iframe.style.width = "100%";
+        iframe.style.height = "100%";
+        iframe.style.border = "none";
+        iframe.style.borderRadius = "12px";
+        iframe.allow = "autoplay; encrypted-media";
+        container.appendChild(iframe);
+        artPlayerInstance.current = iframe;
+      } else {
+        // Pour les vidéos locales
+        const videoEl = document.createElement("video");
+        videoEl.controls = true;
+        videoEl.autoplay = true;
+        videoEl.style.width = "100%";
+        videoEl.style.height = "100%";
+        videoEl.style.borderRadius = "12px";
+        videoEl.style.backgroundColor = "#000";
+        videoEl.src = video.src;
+        container.appendChild(videoEl);
+        artPlayerInstance.current = videoEl;
+      }
+    };
+
+    initPlayer();
+
+    return () => {
+      if (artPlayerInstance.current) {
+        artPlayerInstance.current.remove();
+      }
+    };
+  }, [video]);
 
   return (
     <div
@@ -21,30 +64,26 @@ export default function VideoPlayer({
         flex: "60%",
         display: "flex",
         flexDirection: "column",
-        justifyContent: "flex-start",
-        alignItems: "center",
         backgroundColor: "#000",
         position: "relative",
-        transition: "all 0.6s ease",
         padding: "50px 80px",
         boxSizing: "border-box",
         overflowY: "auto",
       }}
     >
-      {/* 🌈 Dégradé animé */}
+      {/* Dégradé animé */}
       <div
         style={{
           position: "absolute",
           inset: 0,
           background: `radial-gradient(circle at 40% 40%, ${video.color}, #000)`,
-          animation: "gradientMove 10s infinite alternate",
           opacity: 0.9,
           filter: "blur(60px)",
           transition: "background 0.8s ease",
         }}
       />
 
-      {/* ✖ Bouton fermer */}
+      {/* Bouton fermer */}
       <button
         onClick={onClose}
         style={{
@@ -61,30 +100,33 @@ export default function VideoPlayer({
           transition: "background 0.3s",
           zIndex: 2,
         }}
+        onMouseEnter={(e) =>
+          (e.currentTarget.style.background = "rgba(255,255,255,0.2)")
+        }
+        onMouseLeave={(e) =>
+          (e.currentTarget.style.background = "rgba(255,255,255,0.1)")
+        }
       >
         ✖
       </button>
 
-      {/* 🎥 Vidéo principale */}
-      <video
-        ref={videoRef}
-        src={video.src}
-        controls
-        autoPlay
+      {/* Lecteur vidéo - taille fixe */}
+      <div
+        ref={playerRef}
         style={{
           width: "85%",
           maxWidth: "920px",
+          height: "520px",
+          margin: "0 auto",
           borderRadius: "12px",
-          outline: "none",
+          overflow: "hidden",
           boxShadow: "0 0 40px rgba(0, 0, 0, 0.6)",
           zIndex: 1,
-          opacity: isAnimating ? 0 : 1,
-          transition: "opacity 0.5s ease, transform 0.5s ease",
-          transform: isAnimating ? "scale(0.95)" : "scale(1)",
+          position: "relative",
         }}
       />
 
-      {/* 📝 Description */}
+      {/* Description */}
       <div
         style={{
           marginTop: "35px",
@@ -93,6 +135,7 @@ export default function VideoPlayer({
           textAlign: "left",
           width: "85%",
           maxWidth: "920px",
+          margin: "35px auto 0",
         }}
       >
         <h2 style={{ fontSize: "28px", fontWeight: "bold" }}>{video.title}</h2>
@@ -110,17 +153,6 @@ export default function VideoPlayer({
           {video.description}
         </p>
       </div>
-
-      <style jsx>{`
-        @keyframes gradientMove {
-          0% {
-            background-position: 30% 30%;
-          }
-          100% {
-            background-position: 70% 70%;
-          }
-        }
-      `}</style>
     </div>
   );
 }

@@ -1,19 +1,20 @@
+// app/components/playlist/List.tsx
 "use client";
+
+import { FaYoutube } from "react-icons/fa";
 import { VideoData } from "./types";
 
-interface PlaylistListProps {
+interface VideoListProps {
   videos: VideoData[];
-  currentVideo: string | null;
+  currentVideo: VideoData | null;
   onSelect: (video: VideoData) => void;
-  videoRef: React.RefObject<HTMLVideoElement | null>;
-  activeColor: string;
 }
 
-export default function PlaylistList({
+export default function List({
   videos,
   currentVideo,
   onSelect,
-}: PlaylistListProps) {
+}: VideoListProps) {
   return (
     <div
       style={{
@@ -24,7 +25,14 @@ export default function PlaylistList({
         boxSizing: "border-box",
       }}
     >
-      <header style={{ display: "flex", alignItems: "center", gap: "20px" }}>
+      <header
+        style={{
+          display: "flex",
+          alignItems: "center",
+          gap: "20px",
+          marginBottom: "30px",
+        }}
+      >
         <img
           src="https://i.imgur.com/zYIlgBl.jpg"
           alt="Playlist Cover"
@@ -43,16 +51,16 @@ export default function PlaylistList({
               marginBottom: "10px",
             }}
           >
-            My Video Playlist
+            Ma bibliothèque
           </h1>
-          <p style={{ color: "#b3b3b3" }}>By You • {videos.length} videos</p>
+          <p style={{ color: "#b3b3b3" }}>{videos.length} vidéos</p>
         </div>
       </header>
 
-      <ul style={{ marginTop: "30px", padding: 0, listStyle: "none" }}>
-        {videos.map((v, i) => (
+      <ul style={{ padding: 0, listStyle: "none" }}>
+        {videos.map((v) => (
           <li
-            key={i}
+            key={v.id}
             onClick={() => onSelect(v)}
             style={{
               display: "flex",
@@ -61,20 +69,22 @@ export default function PlaylistList({
               padding: "12px 0",
               borderBottom: "1px solid #282828",
               cursor: "pointer",
+              backgroundColor:
+                currentVideo?.id === v.id ? "#282828" : "transparent",
               transition: "background 0.3s",
-              backgroundColor: currentVideo === v.src ? "#282828" : "transparent",
             }}
             onMouseEnter={(e) =>
               (e.currentTarget.style.backgroundColor = "#282828")
             }
             onMouseLeave={(e) =>
-              (e.currentTarget.style.backgroundColor = currentVideo === v.src ? "#282828" : "transparent")
+              (e.currentTarget.style.backgroundColor =
+                currentVideo?.id === v.id ? "#282828" : "transparent")
             }
           >
             <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
-              <video
-                src={v.src}
-                muted
+              <img
+                src={v.thumbnail}
+                alt={v.title}
                 style={{
                   width: "90px",
                   height: "56px",
@@ -83,7 +93,20 @@ export default function PlaylistList({
                 }}
               />
               <div>
-                <div style={{ fontWeight: "bold", color: "#fff" }}>{v.title}</div>
+                <div
+                  style={{
+                    fontWeight: "bold",
+                    color: "#fff",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "8px",
+                  }}
+                >
+                  {v.title}
+                  {v.type === "youtube" && (
+                    <FaYoutube color="#FF0000" size={14} />
+                  )}
+                </div>
                 <div style={{ color: "#b3b3b3", fontSize: "13px" }}>
                   {v.artist}
                 </div>
@@ -92,17 +115,12 @@ export default function PlaylistList({
 
             <div
               style={{
-                display: "flex",
-                alignItems: "center",
-                gap: "8px",
-                color: currentVideo === v.src ? "#1DB954" : "#b3b3b3",
+                color: currentVideo?.id === v.id ? "#1DB954" : "#b3b3b3",
                 fontSize: "13px",
-                minWidth: "50px",
-                justifyContent: "flex-end",
-                fontWeight: currentVideo === v.src ? "bold" : "normal",
+                fontWeight: currentVideo?.id === v.id ? "bold" : "normal",
               }}
             >
-              {currentVideo === v.src ? "▶ En lecture" : v.duration}
+              {currentVideo?.id === v.id ? "▶ En lecture" : v.duration}
             </div>
           </li>
         ))}
